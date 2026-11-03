@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="kmr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پۆرتفۆلیۆی کەسی | Personal Biolink & Portfolio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Inter & Vazirmatn for Kurdish/Arabic compatibility) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom backdrop blur fallback & custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+        
+        .glass-card {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        
+        .glass-button {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.25);
+        }
+        
+        /* Toast style */
+        .toast {
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col justify-between items-center relative overflow-x-hidden selection:bg-brand-500 selection:text-white">
+
+    <!-- Background Image with Dark Vignette & Gradient Overlay -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <!-- User background image with fallbacks -->
+        <div id="bgImage" class="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 transition-all duration-1000" style="background-image: url('https://i.ibb.co/cKkPdxnf/image.png');"></div>
+        
+        <!-- Multi-layer Gradient Dark Overlay for clear text readability -->
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/85 to-slate-950/70"></div>
+        <div class="absolute inset-0 bg-radial from-transparent via-slate-950/40 to-slate-950/90"></div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast fixed bottom-6 left-1/2 -translate-x-1/2 z-50 glass-card px-5 py-3 rounded-2xl flex items-center gap-3 shadow-2xl border border-indigo-500/30 text-white text-sm">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toastMsg">لینکەکە کۆپیکرا!</span>
+    </div>
+
+    <!-- Main Container -->
+    <main class="relative z-10 w-full max-w-2xl px-4 py-8 sm:py-12 flex flex-col items-center">
+        
+        <!-- Language / Settings Bar (Optional Quick Actions) -->
+        <div class="w-full flex justify-between items-center mb-6 px-2">
+            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm backdrop-blur-md">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                ئامادەم بۆ کارکردن / Available for Work
+            </span>
+            <button id="bgToggleBtn" title="تەنها بۆ بینینی ڕووکار / Toggle BG View" class="p-2 rounded-full glass-button text-slate-300 hover:text-white text-xs flex items-center gap-1.5 px-3">
+                <i class="fa-solid fa-image"></i>
+                <span class="hidden sm:inline">گۆڕینی ڕووکار</span>
+            </button>
+        </div>
+
+        <!-- Profile Card -->
+        <div class="w-full glass-card rounded-3xl p-6 sm:p-8 mb-8 text-center shadow-2xl relative overflow-hidden group">
+            <div class="absolute -top-24 -left-24 w-48 h-48 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Profile Picture -->
+            <div class="relative w-28 h-28 sm:w-32 sm:h-32 mx-auto mb-5">
+                <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 animate-spin-slow blur-sm opacity-70"></div>
+                <img id="profileAvatar" 
+                     src="https://i.ibb.co/cKkPdxnf/image.png" 
+                     onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e1b4b/ffffff?text=Akam+Hoshyar';"
+                     alt="Akam Hoshyar Muhamed" 
+                     class="relative w-full h-full object-cover rounded-full border-2 border-white/20 shadow-inner">
+                <!-- Verified Badge -->
+                <div class="absolute bottom-1 right-1 bg-indigo-600 text-white w-7 h-7 rounded-full border-2 border-slate-900 flex items-center justify-center text-xs shadow-lg" title="پڕۆفایلی فەرمی / Verified Profile">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+            </div>
+
+            <!-- Profile Name & Bio -->
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-1" id="userName">
+                ئاکام هۆشیار محەمەد
+            </h1>
+            <p class="text-indigo-400 text-base font-bold mb-3 tracking-wide flex items-center justify-center gap-2" id="userTitle">
+                <i class="fa-solid fa-code text-indigo-400"></i>
+                <span>IT Developer & Software Solutions</span>
+            </p>
+            <p class="text-slate-300 text-sm sm:text-base leading-relaxed max-w-lg mx-auto mb-6" id="userBio">
+                پێشخەر و گەشەپێدەری IT. پسپۆڕ لە دروستکردنی ماڵپەڕ، سیستەم و چارەسەری تەکنەلۆجی. لە ڕێگەی بەستەرەکانی خوارەوە دەتوانیت پەیوەندیم پێوە بکەیت.
+            </p>
+
+            <!-- Quick Stats / Badges -->
+            <div class="flex flex-wrap justify-center gap-3 pt-4 border-t border-white/10 text-xs text-slate-300">
+                <span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/5 flex items-center gap-2">
+                    <i class="fa-solid fa-laptop-code text-indigo-400"></i> IT Developer
+                </span>
+                <span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/5 flex items-center gap-2">
+                    <i class="fa-solid fa-briefcase text-emerald-400"></i> ۲ ساڵ ئەزموون
+                </span>
+                <span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/5 flex items-center gap-2">
+                    <i class="fa-solid fa-location-dot text-indigo-400"></i> Kurdistan / کوردستان
+                </span>
+                <span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/5 flex items-center gap-2">
+                    <i class="fa-solid fa-bolt text-purple-400"></i> ۲۴/۷ چالاک
+                </span>
+            </div>
+        </div>
+
+        <!-- Section Title -->
+        <div class="w-full flex items-center justify-between mb-4 px-2">
+            <h2 class="text-sm font-semibold text-slate-400 tracking-wider uppercase flex items-center gap-2">
+                <i class="fa-solid fa-link text-indigo-400"></i> ئەکاونت و هێڵەکانی پەیوەندی
+            </h2>
+            <span class="text-xs text-slate-500">کلیل لەسەر کۆپیکردن یان چوونە ژوورەوە بکە</span>
+        </div>
+
+        <!-- Links Container -->
+        <div class="w-full space-y-3.5 mb-8" id="linksContainer">
+            <!-- Link Items (Dynamically Generated or Custom Static) -->
+        </div>
+
+        <!-- Contact Me Trigger Button -->
+        <div class="w-full text-center">
+            <button onclick="openModal()" class="w-full glass-button py-4 px-6 rounded-2xl flex items-center justify-center gap-3 font-semibold text-indigo-300 hover:text-white border-indigo-500/30 hover:border-indigo-500/60 shadow-lg">
+                <i class="fa-regular fa-paper-plane text-indigo-400 text-lg"></i>
+                <span>ناردنی پەیامی ڕاستەوخۆ (Quick Message)</span>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="relative z-10 w-full text-center py-6 border-t border-white/5 text-xs text-slate-500 bg-slate-950/60 backdrop-blur-md">
+        <p>© <span id="year"></span> هەموو مافەکان پارێزراون. دروستکراوە بۆ پەیوەندی خێرا.</p>
+    </footer>
+
+    <!-- Modal Form (Quick Message) -->
+    <div id="contactModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-card rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl relative border border-white/15 transform scale-95 transition-all duration-300" id="modalContent">
+            <!-- Close Button -->
+            <button onclick="closeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white w-8 h-8 rounded-full bg-white/5 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
+                    <i class="fa-solid fa-envelope-open-text text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">پەیوەندیم پێوە بکە</h3>
+                    <p class="text-xs text-slate-400">پەیامەکەت ڕاستەوخۆ دەگات پێم</p>
+                </div>
+            </div>
+
+            <form id="contactForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">ناوی تەواو</label>
+                    <input type="text" required placeholder="ناوی خۆت بنووسە..." class="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-white/10 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">ئیمەیڵ یان ژمارەی تەلەفۆن</label>
+                    <input type="text" required placeholder="example@mail.com" class="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-white/10 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">پەیامەکەت</label>
+                    <textarea rows="3" required placeholder="چۆن دەتوانم یارمەتیدەرت بم..." class="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-white/10 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm resize-none"></textarea>
+                </div>
+                <button type="submit" class="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>ناردنی پەیام</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Data & Logic -->
+    <script>
+        // Set dynamic current year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Account Links Configuration Data for Akam Hoshyar Muhamed
+        const socialLinks = [
+            {
+                name: "Facebook",
+                subtitle: "ئەکاونتی فەرمی فەیسبووک",
+                url: "https://www.facebook.com/share/1A1xDG5Kcy/?mibextid=wwXIfr",
+                icon: "fa-brands fa-facebook-f",
+                color: "text-blue-500",
+                badge: "Facebook"
+            },
+            {
+                name: "Instagram",
+                subtitle: "پەیجی فەرمی ئینستاگرام (@x2_aka)",
+                url: "https://www.instagram.com/x2_aka?xtok=Mzh6Y3ZwMzV1NW84&utm_source=qr",
+                icon: "fa-brands fa-instagram",
+                color: "text-pink-400",
+                badge: "Instagram"
+            },
+            {
+                name: "WhatsApp",
+                subtitle: "پەیوەندی ڕاستەوخۆی واتسئاپ",
+                url: "https://wa.me/9647512105084?s=p",
+                icon: "fa-brands fa-whatsapp",
+                color: "text-emerald-400",
+                badge: "WhatsApp"
+            },
+            {
+                name: "LinkedIn",
+                subtitle: "تۆڕی پیشەیی لیندکن (Akam Hoshyar)",
+                url: "https://www.linkedin.com/in/akam-hoshiar-51a126447?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
+                icon: "fa-brands fa-linkedin-in",
+                color: "text-blue-400",
+                badge: "LinkedIn"
+            },
+            {
+                name: "Telegram",
+                subtitle: "نامەناردنی ڕاستەوخۆ لە تێلگرام (@ittz_aka)",
+                url: "https://t.me/ittz_aka",
+                icon: "fa-brands fa-telegram",
+                color: "text-sky-400",
+                badge: "Telegram"
+            }
+        ];
+
+        // Render Links into HTML
+        const linksContainer = document.getElementById('linksContainer');
+
+        function renderLinks() {
+            linksContainer.innerHTML = '';
+            socialLinks.forEach((link, idx) => {
+                const linkCard = document.createElement('div');
+                linkCard.className = 'glass-button rounded-2xl p-4 flex items-center justify-between group cursor-pointer relative overflow-hidden';
+                
+                linkCard.innerHTML = `
+                    <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="absolute inset-0 z-10"></a>
+                    <div class="flex items-center gap-4 relative z-0">
+                        <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl ${link.color} group-hover:scale-110 transition-transform duration-300">
+                            <i class="${link.icon}"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-semibold text-white group-hover:text-indigo-300 transition-colors">${link.name}</h3>
+                                ${link.badge ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/5">${link.badge}</span>` : ''}
+                            </div>
+                            <p class="text-xs text-slate-400 line-clamp-1">${link.subtitle}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 relative z-20">
+                        <!-- Quick Copy Button -->
+                        <button onclick="copyToClipboard(event, '${link.url}')" title="کۆپیکردنی لینک" class="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/15 text-slate-400 hover:text-white flex items-center justify-center transition-all text-xs border border-white/5">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                        <!-- External Arrow Icon -->
+                        <div class="w-9 h-9 rounded-xl bg-white/5 group-hover:bg-indigo-600 group-hover:text-white text-slate-400 flex items-center justify-center transition-all text-xs border border-white/5">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </div>
+                    </div>
+                `;
+                linksContainer.appendChild(linkCard);
+            });
+        }
+
+        renderLinks();
+
+        // Copy Link Functionality
+        function copyToClipboard(event, text) {
+            event.stopPropagation();
+            event.preventDefault();
+            
+            // Temporary input fallback for reliable copy
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            showToast('لینکەکە بە سەرکەوتوویی کۆپیکرا!');
+        }
+
+        // Toast Popup Trigger
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Modal Functionality
+        function openModal() {
+            const modal = document.getElementById('contactModal');
+            const content = document.getElementById('modalContent');
+            modal.classList.remove('pointer-events-none', 'opacity-0');
+            modal.classList.add('opacity-100');
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('contactModal');
+            const content = document.getElementById('modalContent');
+            modal.classList.add('pointer-events-none', 'opacity-0');
+            modal.classList.remove('opacity-100');
+            content.classList.add('scale-95');
+            content.classList.remove('scale-100');
+        }
+
+        // Close modal when clicking backdrop
+        document.getElementById('contactModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Form Submission
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            closeModal();
+            showToast('پەیامەکەت بنێردرا! سوپاس بۆ پەیوەندیکردنت.');
+            document.getElementById('contactForm').reset();
+        }
+
+        // Background Image Focus Toggle Mode (Fun interactive element)
+        let bgFocused = false;
+        document.getElementById('bgToggleBtn').addEventListener('click', () => {
+            bgFocused = !bgFocused;
+            const bg = document.getElementById('bgImage');
+            const main = document.querySelector('main');
+            
+            if (bgFocused) {
+                bg.style.filter = 'blur(0px)';
+                main.style.opacity = '0.25';
+            } else {
+                bg.style.filter = 'none';
+                main.style.opacity = '1';
+            }
+        });
+    </script>
+</body>
+</html>
